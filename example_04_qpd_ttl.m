@@ -1,4 +1,5 @@
-%% field screen example 06 - Differential Wavefront Sensing
+%% example 04
+% - Demonstrate Tilt to Length Effects
 
 % This test superimposes two gaussian beams and observes
 % the intereference on the photodiode (class field screen) element.
@@ -24,11 +25,11 @@ gscreen.rotang=0*4*pi/180;
 gscreen.rotax =[0 1 0];
 
 gscreen.set_mask_round();
-%gscreen.set_mask_gap(100e-6);
+gscreen.set_mask_gap(100e-6);
 
 figure();
 gscreen.plot_mask();
-title('Detector shape');
+
 
 
 
@@ -42,11 +43,11 @@ gscreen.add_beam( beam2 );
 gscreen.render();
 [ac,dc]=gscreen.calc_contrast();
 disp(['Max Contrast [%]' num2str(100*ac./(ac+dc))]);
-
+figure();
 gscreen.plot_interference();
 
 
-% Parameter study. Beam1 has a offset. Coupling of Offset into Pathlength.
+% Parameter study A. Beam1 has a angle. Coupling of Offset into Pathlength.
 par = linspace(-200e-6,200e-6,20);
 
 for i=1:length(par)
@@ -62,7 +63,7 @@ figure();
 subplot(2,1,1);
 plot(par,(ph-max(ph))*lambda/2*pi);
 xlabel('Tilt Angle Beam(rad)');ylabel('Path length (m)');
-title('ParameterStudy DWS- Example 06');
+title('GaussCAD- Example 04 - TTL');
 subplot(2,1,2);
 plot(par,dws);
 xlabel('Tilt Angle Beam(rad)');ylabel('DWS Signal (rad)');

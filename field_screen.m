@@ -174,10 +174,10 @@ classdef field_screen < handle
             y = linspace( -self.dim(1)/2, self.dim(1)/2, self.pix(1) );
             z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
             [ xx,yy ] = meshgrid( y,z );
-            subplot(2,2,1);
+            subplot(2,1,1);
             ret_handle=surf(xx,yy,sum(abs(self.E),3),'EdgeColor','none');
             title('Sum of Intensity');
-            subplot(2,2,3);
+            subplot(2,1,2);
             
             for i=1:size(self.E,3)
                 ret_handle=surf(xx,yy,abs(self.E(:,:,i)),'EdgeColor','none');hold on;
@@ -185,17 +185,19 @@ classdef field_screen < handle
             title('Each Intensity');
             legend();
             
-            figure();
-            if size(self.E,3) == 2
-                ac = min(abs(self.E),[],3);
-                dc = sum(abs(self.E),3)-ac;
-                subplot(2,1,1);
-                surf(xx,yy,ac,'EdgeColor','none');hold on;
-                legend('interfering');
-                subplot(2,1,2);
-                surf(xx,yy,dc,'EdgeColor','none');hold on;
-                legend('non-interfering');
-            end
+%             %TODO: This evaluation of ac and dc part of the rotating
+%             fiel is not correct.
+%             if size(self.E,3) == 2
+%                 ac = min(abs(self.E),[],3);
+%                 dc = sum(abs(self.E),3)-ac;
+%                 subplot(2,1,1);
+%                 surf(xx,yy,ac,'EdgeColor','none');hold on;
+%                 legend('interfering');
+%                 subplot(2,1,2);
+%                 surf(xx,yy,dc,'EdgeColor','none');hold on;
+%                 legend('non-interfering');
+%             end
+            
         end %plot intensity
         
         

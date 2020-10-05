@@ -1,9 +1,12 @@
-%% field screen example 04
+%% example 05
+% -Demonstrate Beam Offset to Length Effects
 
 % This test superimposes two gaussian beams and observes
 % the intereference on the photodiode (class field screen) element.
 % The beams are taken from an actual interferometer setup.
 % A. Schultze 01/10/2020 (GaussCAD toolbox)
+
+
 
 close all;
 
@@ -37,11 +40,6 @@ gscreen.rotax =[0 1 0];
 
 gscreen.set_mask_round();
 gscreen.set_mask_gap(100e-6);
-figure();
-gscreen.plot_mask();
-title('Detector shape');
-
-
 
 gscreen.add_beam( beam1 );
 gscreen.add_beam( beam2 );
@@ -72,36 +70,31 @@ xlabel('x');ylabel('y');zlabel('Magnitude');
 par = linspace(0,100e-6,20);
 p0=beam1.p;
 
-clear ph;
+clear ph q_ph dws;
 for i=1:length(par)
     beam1.p=p0+[0 par(i) 0 ];
     gscreen.render();
     [~,this_ph]=gscreen.calc_int_phase();
     ph(i)=this_ph;    
+    [~,this_q_ph]=gscreen.calc_int_phase_quadrants();
+    q_ph(:,i)=this_q_ph;
+    
+    [dws(i,1),dws(i,2)]=gscreen.calc_dws();
 end
 figure();
+subplot(3,1,1);
 plot(par,(ph-max(ph))*lambda/2*pi);
 xlabel('Offset Beam y (m)');
 ylabel('Pathlength (m)');
-title('ParameterStudy 1');
+title('GaussCAD Example 05 - Offset-to-Length');
 
-
-% Parameter study. Beam1 has a offset. Coupling of Offset into Pathlength.
-par = linspace(0,100e-6,20);
-p0=beam1.p;
-
-clear ph;
-for i=1:length(par)
-    beam1.p=p0+[0 par(i) 0 ];
-    gscreen.render();
-    [~,this_ph]=gscreen.calc_int_phase_quadrants();
-    ph(:,i)=this_ph;    
-end
-figure();
-plot(par,(ph-max(ph))*lambda/2*pi);
+subplot(3,1,2);
+plot(par,(q_ph-max(q_ph))*lambda/2*pi);
 xlabel('Offset Beam y (m)');
 ylabel('Pathlength (m)');
-title('ParameterStudy 2');
+legend('Q1','Q2','Q3','Q4');
 
-
-
+subplot(3,1,3);
+plot(par,dws);
+xlabel('Offset Beam y (m)');ylabel('DWS Signal (rad)');
+legend('y','z');

@@ -20,6 +20,7 @@ gscreen.render();
 figure(); gscreen.plot_intensity();
 figure(); gscreen.plot_interference();
 
+return;
 %Make a video of interference on screen
 figure();
 v = VideoWriter('sed_interference.avi','Motion JPEG AVI');

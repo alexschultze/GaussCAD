@@ -1,4 +1,4 @@
-%% Matrix Optics (ABCD) example 05
+%% Matrix Optics (ABCD) example 06
 % to calculate new Gaussian complex beam parameter (q) with ray optics
 % A. Schultze 01/10/2020 (GaussCAD toolbox)
 
