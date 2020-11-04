@@ -4,12 +4,21 @@ classdef element < handle
     % A. Schultze 01/10/2020 (GaussCAD toolbox)
     properties
         abcd;
+        type;
     end
     
     methods
-        function obj = element(type,varargin)
+        
+        function obj = disp(obj)
+            disp(obj.type);
+            disp('[ABCD]: ');
+            disp(obj.abcd);
+        end
+        
+        function obj = element(in_type,varargin)
             %Construct an instance of this class
-            switch lower(char(type))
+            obj.type=in_type;
+            switch lower(char(in_type))
                 case 'translation'
                     d=varargin{1};
                     obj.abcd = [1,d;0,1];
@@ -30,13 +39,15 @@ classdef element < handle
                 case 'mirror'
                     obj.abcd = [1,0;0,1]; 
                 case 'mirror_curved'
-                    p=varargin{3};
+                    p=1/varargin{1};
                     obj.abcd = [1,0;-2*p,1];       
                 case 'spherical_refraction'
                     n1=varargin{1};
                     n2=varargin{2};
                     p=varargin{3};
                     obj.abcd = [1,0;(n1./n2-1).*p,n1./n2]; 
+                case 'screen'
+                    obj.abcd = [1,0;0,1]; 
                 otherwise
                    obj.abcd=varargin{1}; 
             end %switch

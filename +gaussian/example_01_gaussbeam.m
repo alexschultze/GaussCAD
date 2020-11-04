@@ -10,7 +10,7 @@ close all;
 
 lambda = 1064e-9;
 w0     = 2*lambda;
-beam1= gauss_beam([0.01 0 0],[1 1 0],w0, 1, lambda );
+beam1= gaussian.gauss_beam([0.01 0 0],[1 1 0],w0, 1, lambda );
 
 % Section one, evaluate in R-Z Coordinates (Beam reference)
 
@@ -78,8 +78,8 @@ xlabel('z');ylabel('r');zlabel('Phase');
 
 
 %% Check how it looks like when the phase is shifting for some point
-beam1= gauss_beam([0.0 0 0],[1 1 0],w0, 1, lambda );
-beam2= gauss_beam([0.0 0 0],[1 1 0],w0, 1, lambda );
+beam1= gaussian.gauss_beam([0.0 0 0],[1 1 0],w0, 1, lambda );
+beam2= gaussian.gauss_beam([0.0 0 0],[1 1 0],w0, 1, lambda );
 
 point = [0*lambda 0 0];
 ph=linspace(0,2*pi,20);

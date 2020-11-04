@@ -15,12 +15,12 @@ w0     = 390e-6;
 w0= 400e-6;
 zd= -150e-3;
 
-beam1= gauss_beam([zd+5e-3 0 0],[1 0 0],w0 ,1, lambda );
+beam1= gaussian.gauss_beam([zd+5e-3 0 0],[1 0 0],w0 ,1, lambda );
 
 %MEAS1 (Reflection from Center - Wavefront matching)
-beam2= gauss_beam([zd 0 0],[1 0 0],w0, 1, lambda );
+beam2= gaussian.gauss_beam([zd 0 0],[1 0 0],w0, 1, lambda );
 
-gscreen = field_screen([0.0 0 0],[0 0 0],[1 1]*2e-3,[512 512]);
+gscreen = gaussian.field_screen([0.0 0 0],[0 0 0],[1 1]*2e-3,[512 512]);
 gscreen.rotang=0*4*pi/180;
 gscreen.rotax =[0 1 0];
 

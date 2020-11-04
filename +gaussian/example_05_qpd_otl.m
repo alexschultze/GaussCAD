@@ -19,22 +19,22 @@ w0     = 390e-6; % collimator output w0= [390/400]e-6, z=[-740,750 ] e-3
 %LO1
 w0= 400e-6;
 zd= -150e-3;
-beam1= gauss_beam([zd 0 0],[1 0 0],w0 ,1, lambda );
+beam1= gaussian.gauss_beam([zd 0 0],[1 0 0],w0 ,1, lambda );
 
 
 %MEAS1 (Reflection from Center - Wavefront matching)
 w0= 400e-6;
 zd= -800e-3;  %from optocad
-beam2= gauss_beam([zd 0 0],[1 0 0],w0, 1, lambda );
+beam2= gaussian.gauss_beam([zd 0 0],[1 0 0],w0, 1, lambda );
 
 %MEAS2 (Reflection from Surface - Wavefront not matching)
 w0= 80e-6;
 zd= 43e-3;
-beam3= gauss_beam([zd 0 0],[1 0 0],w0, 1, lambda );
+beam3= gaussian.gauss_beam([zd 0 0],[1 0 0],w0, 1, lambda );
 
 
 
-gscreen = field_screen([0.0 0 0],[0 0 0],[1 1]*2e-3,[512 512]);
+gscreen = gaussian.field_screen([0.0 0 0],[0 0 0],[1 1]*2e-3,[512 512]);
 gscreen.rotang=0*4*pi/180;
 gscreen.rotax =[0 1 0];
 

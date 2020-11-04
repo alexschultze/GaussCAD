@@ -43,10 +43,10 @@ classdef gauss_beam < handle & matlab.mixin.Copyable
                         
             if length(varargin)==0
                 obj.w0 = a_w0;
-                obj.zr = gauss_beam.calc_zr(a_w0,a_n,a_lambda); 
+                obj.zr = gaussian.gauss_beam.calc_zr(a_w0,a_n,a_lambda); 
             else
                 obj.zr=varargin{1};
-                obj.w0 = gauss_beam.calc_w0(obj.zr,a_n,a_lambda); 
+                obj.w0 = gaussian.gauss_beam.calc_w0(obj.zr,a_n,a_lambda); 
             end
             
             obj.p = a_pv;

@@ -1,5 +1,6 @@
-# GaussCAD / v0.1
+# GaussCAD / v0.2
 A simulator for evaluating Gaussian optics and simulate projection onto a photodiode. Visual representation of intensity/phase fields as described by Gaussian optics.
+
 
 A. Schultze
 30/09/2020
@@ -7,6 +8,7 @@ A. Schultze
 A simulator for evaluating Gaussian optics and simulate projection onto
 a photodiode. Visual representation of intensity/phase 
 fields as described by Gaussian optics.
+It makes uses of Paraxial optics to propagate Gaussian Rays through optical elements. A simple Paraxial optics tracer functionality is included as well.
 
 Features:
 -Symmetrical Gaussian Beams of TEM00 mode
