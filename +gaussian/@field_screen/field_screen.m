@@ -4,6 +4,11 @@ classdef field_screen < handle
     % complex field sensors such as single element photodiodes
     % for interferometry.
     % A. Schultze 01/10/2020 (GaussCAD toolbox)
+    
+    % QPD Segments order definition:
+    % REAR   View FRONT       (z)
+    % 3 | 4       4 | 3        ^
+    % 2 | 1       1 | 2        |-> (y)
     properties
         r;
         n;
@@ -60,48 +65,73 @@ classdef field_screen < handle
             z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
             [ yy,zz] = meshgrid( y, z );
             
-            %      4 | 1      ^(y)
-            %     -----       | 
-            %      3 | 2      --->(z)
+% REAR   View FRONT       (z)
+% 3 | 4       4 | 3        ^
+% 2 | 1       1 | 2        |-> (y)
             switch (a_q)
                 case 1
-                    qq = (yy>0) & (zz > 0); %+y +z
-                case 2
-                    qq = (yy<0) & (zz > 0); %-y +z
-                case 3
-                    qq = (yy>0) & (zz < 0); %+y -z
-                case 4
                     qq = (yy<0) & (zz < 0); %-y -z
+                case 2
+                    qq = (yy>0) & (zz < 0); %+y -z
+                case 3
+                    qq = (yy>0) & (zz > 0); %+y +z
+                case 4
+                    qq = (yy<0) & (zz > 0); %-y +z
                 otherwise
                     warning('No valid quadrant specified');
             end 
             retval = qq;
         end
         
-        
-        function [int,ph,e] = calc_int_phase(self)
-            int=abs(sum(self.E.*self.mask,'all')); %total intensity
-            ph =angle(sum(self.E.*self.mask,'all')); %total phase angle
+        %Complete (masked) intensity and phase
+        function [int,phase,e, gouy] = calc_int_phase(self)
+            int=abs(sum(self.E.*self.mask,'all')); %interference intensity
+            gouy =angle(sum(self.E.*self.mask,'all')); %total phase angle response (guoy)
             e  = sum(self.E.*self.mask,'all'); %complex field response
+            
+            ph_angle =  angle(self.E);
+            phase =  ph_angle(:,:,1)-ph_angle(:,:,2);   %interference phase 
+
+            phase = lib.unwrap_2d.phase_unwrap_TV_min(phase,'yes');
+            phase = sum(phase.*self.mask,'all');    
         end
         
-        function [int,ph,e] = calc_int_phase_quadrants(self)
+        function [int,phase,e,gouy] = calc_int_phase_quadrants(self)
             int=zeros(1,4);
-            ph=zeros(1,4);
+            phase=zeros(1,4);
             e =zeros(1,4);
+            gouy =zeros(1,4);
+            
+             ph_angle =  angle(self.E);
+             ph_angle =  ph_angle(:,:,1)-ph_angle(:,:,2);   %interference phase 
+             %ph_angle = ph_angle-ph_angle(end/2, end/2); %center to mid
+
+            if max(ph_angle,[],'all')-min(ph_angle,[],'all') > pi
+                %This is slow. Only when necessary.
+                ph_angle = lib.unwrap_2d.phase_unwrap_TV_min(ph_angle,'no');
+            end
+            
+            
             for i=1:4
                 maskq = self.mask_quadrant(i);
                 int(i)=abs(sum(self.E.*(maskq & self.mask),'all')); %total intensity
-                ph(i) =angle(sum(self.E.*(maskq & self.mask),'all')); %total phase angle
+                gouy(i) =angle(sum(self.E.*(maskq & self.mask),'all')); %total phase angle
                 e(i)  = sum(self.E.*(maskq & self.mask),'all');
+                phase(i) = sum(ph_angle.*(maskq & self.mask),'all');  
             end
         end
         
         function [dws_y,dws_z] = calc_dws(self)
-            %TODO: Check definition of y/z
+            %Calculate the Phase difference between left/right
+            %and top/bottom
+            
+    % REAR   View FRONT       (z)
+    % 3 | 4       4 | 3        ^
+    % 2 | 1       1 | 2        |-> (y)
+    
             [~,ph,e] = calc_int_phase_quadrants(self);
-            dws_y =  (ph(1)+ph(4))-(ph(2)+ph(3));
-            dws_z =  (ph(1)+ph(2))-(ph(3)+ph(4));
+            dws_y =  (ph(2)+ph(3))-(ph(1)+ph(4));
+            dws_z =  (ph(3)+ph(4))-(ph(1)+ph(2));
             %dws_y = angle(e(1)+e(4))-(e(2)+e(3));
             %dws_z = angle(e(1)+e(2))-(e(3)+e(4));
             
@@ -159,7 +189,7 @@ classdef field_screen < handle
             for i=1:length(self.beams)
                 this_beam=self.beams(i);
                 this_E=this_beam.calc_field_xyz( S + self.r);
-                self.E(:,:,i)= reshape(this_E,size(xx));
+                self.E(:,:,i)= squeeze(reshape(this_E,size(xx)))';
             end
             retval= self.E;                      
         end % function retval = render(self)
@@ -205,24 +235,29 @@ classdef field_screen < handle
             y = linspace( -self.dim(1)/2, self.dim(1)/2, self.pix(1) );
             z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
             [ xx,yy ] = meshgrid( y,z );
-            subplot(2,2,1);
+            subplot(2,1,1);
             %int=abs(sum(self.E,'all')); %total intensity
             %ph =angle(sum(self.E,'all')); %total phase angle
             
             %max possible intensity for scaling
             max_int = max(sum(abs(self.E),3).^2,[],'all'); 
             
-            subplot(2,1,1)
             ret_handle=surf(xx,yy,abs(sum(self.E,3)).^2,'EdgeColor','none');
             zlabel('Intensity');
             colorbar; view([0,90]); caxis([0 max_int]);
             xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)');
             title('Interference (Intensity)');
             subplot(2,1,2)
-            ret_handle=surf(xx,yy,abs(angle(sum(self.E,3))),'EdgeColor','none');
+            ph_angle =  angle(self.E);
+            phase =  ph_angle(:,:,1)-ph_angle(:,:,2);         
+            phase = lib.unwrap_2d.phase_unwrap_TV_min(phase,'no');
+            phase = phase-phase(end/2,end/2); %center mid to 0
+            
+            ret_handle=surf(xx,yy,phase,'EdgeColor','none');
             zlabel('Phase (rad)');
             title('Interference (Phase)');
-            colorbar;caxis([0 pi]);view([0,90]);
+            %zlim([-1 1]*pi);
+            colorbar;caxis([-1 1]*pi);view([0,90]);
             xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)');
         end % plot interference
         

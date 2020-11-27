@@ -1,4 +1,4 @@
-# GaussCAD / v0.2
+# GaussCAD / v0.3
 A simulator for evaluating Gaussian optics and simulate projection onto a photodiode. Visual representation of intensity/phase fields as described by Gaussian optics.
 
 
@@ -23,3 +23,7 @@ It does not feature:
 -Polarisation
 
 Tested with Matlab v2018b.
+
+Changelog:
+----------
+v3: - Fix Field Phase Calculation (fixes DWS)
