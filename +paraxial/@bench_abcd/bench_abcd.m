@@ -10,6 +10,14 @@ classdef bench_abcd < handle
         rl =[0 0]
     end
     
+    methods (Static)
+        function ret_q=propagate_gauss(abcd,q)
+            % 1,1 - A
+            % 1,2 - B
+            ret_q=(abcd(1,1).*q+abcd(1,2))./ (abcd(2,1).*q+abcd(2,2));
+        end
+    end
+    
     methods
         function obj = bench_abcd(in_r0, in_alpha0)
             %Initial Beam Parameter
@@ -24,7 +32,7 @@ classdef bench_abcd < handle
         end
         
         function plot(obj)
-             figure();
+             %figure();
              subplot(2,1,1);
              hold on;
              %draw elements
@@ -42,8 +50,12 @@ classdef bench_abcd < handle
                 end
 
                 z= obj.elements_pos(i)-last_z;
-                tmp_rl=[1,z;0,1]*last_rl; %free space
+                abcd = [1,z;0,1];
+                tmp_rl=abcd*last_rl; %free space
                 this_rl(:,i)=obj.elements(i).abcd*tmp_rl; 
+                
+
+                
             end
             
             % Build complete with initial
@@ -56,7 +68,75 @@ classdef bench_abcd < handle
             stairs(pos, rl(2,:));
             xlabel('z (m)');
             ylabel('alpha(z) (rad)');
+            suptitle('Matrix Optics: Paraxial Beam Propagation');
         end
+ 
+        function [R]=gauss_curvature(obj,z,zr)
+            R=z.*(1+(zr./z).^2);  
+        end
+        
+        function [R]=gauss_curvature_q(obj,q)
+            R=real(q).*(1+(imag(q)./real(q)).^2);  
+        end
+        
+        function [q,pos, R]=plot_gauss(obj, in_q)
+
+             %draw elements
+             
+             
+            for i=1:size(obj.elements,2)              
+                if(i>1)
+                    last_z=obj.elements_pos(i-1);
+                    last_q=this_q(:,i-1);
+                else
+                    last_z=0;
+                    last_q=in_q;
+                end
+
+                z= obj.elements_pos(i)-last_z;
+                abcd = [1,z;0,1];
+                tmp_q=obj.propagate_gauss(abcd,last_q);
+                this_q(i)=obj.propagate_gauss(obj.elements(i).abcd,tmp_q);
+                
+                 %add two elements for each calculation, before
+                %and after element
+                pos(2*i-1)=obj.elements_pos(i)-eps;
+                q_all(2*i-1)=tmp_q;
+                pos(2*i)=obj.elements_pos(i);
+                q_all(2*i)=this_q(i);       
+                
+                %Radius of curvature R=z(1+(zr/z).^2)
+                R(2*i-1) =obj.gauss_curvature_q(tmp_q);
+                R(2*i)   =obj.gauss_curvature_q(this_q(i));
+                
+                
+            end
+            
+            
+            % Build complete with initial
+                q= [in_q, q_all];
+                pos=[0,pos];
+                R =[obj.gauss_curvature_q(in_q), R];
+            if(nargout==0)
+                subplot(3,1,1);
+                hold on;
+                for i=1:length(obj.elements_pos); xline(obj.elements_pos(i),'--r');end
+                plot(pos, real(q));
+                xlabel('z (m)');
+                ylabel('z(z) (m)');
+                subplot(3,1,2);
+                stairs(pos, imag(q));
+                xlabel('z (m)');
+                ylabel('z0(z) (rad)');
+                
+                subplot(3,1,3);
+                plot(pos, R,'*--');
+                xlabel('z (m)');
+                ylabel('R(z) (m)');
+                
+                suptitle('Matrix Optics: Gauss Beam Propagation');
+            end
+        end 
         
     end
 end
