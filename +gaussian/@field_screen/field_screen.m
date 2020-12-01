@@ -83,51 +83,64 @@ classdef field_screen < handle
             retval = qq;
         end
         
-        %Complete (masked) intensity and phase
-        function [int,phase,e, gouy] = calc_int_phase(self)
-            int=abs(sum(self.E.*self.mask,'all')); %interference intensity
-            gouy =angle(sum(self.E.*self.mask,'all')); %total phase angle response (guoy)
-            e  = sum(self.E.*self.mask,'all'); %complex field response
-            
-            ph_angle =  angle(self.E);
-            phase =  ph_angle(:,:,1)-ph_angle(:,:,2);   %interference phase 
 
-            phase = lib.unwrap_2d.phase_unwrap_TV_min(phase,'yes');
-            phase = sum(phase.*self.mask,'all');    
-        end
         
-        function [int,phase,e,gouy] = calc_int_phase_quadrants(self)
-            int=zeros(1,4);
-            phase=zeros(1,4);
-            e =zeros(1,4);
-            gouy =zeros(1,4);
+        %Calculate a single value response for intensity and phase for 
+        %a masked segment
+        function [int,phase,e] = calc_int_phase_masked(self,par_mask)
+           
+            %ac amplitude: min(abs(E1),abs(E2))
+            %dc amplitude: max(abs(E1),abs(E2))- ac
+            ac = min(abs(self.E(:,:,1)),abs(self.E(:,:,2)));
+            %dc = max(abs(self.E(:,:,1)),abs(self.E(:,:,2)))-ac;
             
-             ph_angle =  angle(self.E);
-             ph_angle =  ph_angle(:,:,1)-ph_angle(:,:,2);   %interference phase 
-             %ph_angle = ph_angle-ph_angle(end/2, end/2); %center to mid
+            
+            %phase_angle: angle(interferogram)
+            ph_angle =  angle(self.E);
+            ph_angle =  ph_angle(:,:,1)-ph_angle(:,:,2);   %Interferogram 
+           %ph_angle = ph_angle-ph_angle(end/2, end/2);   %Center to mid
 
             if max(ph_angle,[],'all')-min(ph_angle,[],'all') > pi
                 %This is slow. Only when necessary.
                 ph_angle = lib.unwrap_2d.phase_unwrap_TV_min(ph_angle,'no');
             end
             
-            
-            for i=1:4
-                maskq = self.mask_quadrant(i);
-                int(i)=abs(sum(self.E.*(maskq & self.mask),'all')); %total intensity
-                gouy(i) =angle(sum(self.E.*(maskq & self.mask),'all')); %total phase angle
-                e(i)  = sum(self.E.*(maskq & self.mask),'all');
-                phase(i) = sum(ph_angle.*(maskq & self.mask),'all');  
-            end
+            %Complex Weighed Phase Angle Vector Field
+            ph_angle_weighed = ac.*exp(-1i*ph_angle);
+
+            %momentary intensity "irradiance"
+            int=abs(sum(self.E.*(par_mask),'all')); 
+            %phase (weighed)
+            phase = angle(mean(ph_angle_weighed.*(par_mask),'all'));  
+            %complex field response
+            e  = sum(self.E.*(par_mask),'all');
+        end
+        
+       
+        %Complete (masked) intensity and phase
+        function [int,phase,e] = calc_int_phase(self)
+            [int,phase,e] = self.calc_int_phase_masked(self.mask);
+        end
+        
+        %Complete (masked) intensity and phase per quadrant
+        function [int,phase,e] = calc_int_phase_quadrants(self)
+            int=zeros(1,4);
+            phase=zeros(1,4);
+            e=zeros(1,4);
+                
+             for i=1:4
+                this_mask = (self.mask_quadrant(i) & self.mask);
+                [int(i),phase(i),e(i)] = self.calc_int_phase_masked(this_mask);
+            end 
         end
         
         function [dws_y,dws_z] = calc_dws(self)
             %Calculate the Phase difference between left/right
             %and top/bottom
             
-    % REAR   View FRONT       (z)
-    % 3 | 4       4 | 3        ^
-    % 2 | 1       1 | 2        |-> (y)
+            % REAR   View FRONT       (z)
+            % 3 | 4       4 | 3        ^
+            % 2 | 1       1 | 2        |-> (y)
     
             [~,ph,e] = calc_int_phase_quadrants(self);
             dws_y =  (ph(2)+ph(3))-(ph(1)+ph(4));
@@ -137,21 +150,36 @@ classdef field_screen < handle
             
         end
         
-        function [ac,dc,phi,int] = calc_contrast(self)
-            %figure out ac and dc of interference
-            %by varying phase of one beam and find
-            %min and max
-            
-            ni=36;
-            for i=1:ni
-                phi(i)=2*pi/i;
-                self.shift_phase_beam1( phi(i));
-                int(i)=sum(abs(sum(self.E,3).^2).*self.mask,'all');
-            end   
-            
-            ac = max(int)-min(int);
-            dc = min(int);
+        
+        function [ac,dc] = plot_contrast(self)
+            ac = min(abs(self.E(:,:,1)),abs(self.E(:,:,2)));
+            dc = max(abs(self.E(:,:,1)),abs(self.E(:,:,2)))-ac;
+             
+            y = linspace( -self.dim(1)/2, self.dim(1)/2, self.pix(1) );
+            z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
+            [ xx,yy ] = meshgrid( y,z );
+            subplot(2,1,1);
+            surf(xx,yy,ac,'EdgeColor','none'); title('AC');
+            xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)');
+            subplot(2,1,2);
+            surf(xx,yy,dc,'EdgeColor','none'); title('DC');
+            xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)'); 
         end
+        
+        function [ret_ac,ret_dc, ret_contrast] = calc_contrast(self)
+            [ret_ac,ret_dc, ret_contrast]=self.calc_contrast_masked(self.mask);
+        end
+        
+        function [ret_ac,ret_dc, ret_contrast] = calc_contrast_masked(self, par_mask)
+            ac = 2*min(abs(self.E(:,:,1)),abs(self.E(:,:,2)));
+            dc = max(abs(self.E(:,:,1)),abs(self.E(:,:,2)))-ac/2;
+ 
+            ret_ac = sum(ac.*par_mask,'all');
+            ret_dc = sum(dc.*par_mask,'all');
+            ret_contrast= ret_ac/(ret_ac+ret_dc);
+        end
+        
+          
         
         function retval = plot_mask(self)
             y = linspace( -self.dim(1)/2, self.dim(1)/2, self.pix(1) );
@@ -167,7 +195,8 @@ classdef field_screen < handle
                xlabel('y');ylabel('z');
                legend(['Q' num2str(i)],'Location','southeast');
                view([0 90]);
-            end      
+            end   
+            suptitle('Screen Mask');
         end
         
         function retval = render(self)
@@ -196,7 +225,8 @@ classdef field_screen < handle
         
         %This function will simplify and speed up
         %shifting phase of one beams rendered result
-        function ret_handle = shift_phase_beam1(self,a_phi)
+        %Useful for fast plotting
+        function shift_phase_beam1(self,a_phi)
             self.E(:,:,1)=exp(-1i*a_phi).*self.E(:,:,1);    
         end
         
@@ -204,30 +234,19 @@ classdef field_screen < handle
             y = linspace( -self.dim(1)/2, self.dim(1)/2, self.pix(1) );
             z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
             [ xx,yy ] = meshgrid( y,z );
-            subplot(2,1,1);
+            subplot(3,1,1);
             ret_handle=surf(xx,yy,sum(abs(self.E),3),'EdgeColor','none');
             title('Sum of Intensity');
-            subplot(2,1,2);
+            
             
             for i=1:size(self.E,3)
+                subplot(3,1,1+i);
                 ret_handle=surf(xx,yy,abs(self.E(:,:,i)),'EdgeColor','none');hold on;
+                title(['Beam #' num2str(i)]);
             end
-            title('Each Intensity');
-            legend();
-            
-%             %TODO: This evaluation of ac and dc part of the rotating
-%             fiel is not correct.
-%             if size(self.E,3) == 2
-%                 ac = min(abs(self.E),[],3);
-%                 dc = sum(abs(self.E),3)-ac;
-%                 subplot(2,1,1);
-%                 surf(xx,yy,ac,'EdgeColor','none');hold on;
-%                 legend('interfering');
-%                 subplot(2,1,2);
-%                 surf(xx,yy,dc,'EdgeColor','none');hold on;
-%                 legend('non-interfering');
-%             end
-            
+
+
+                       
         end %plot intensity
         
         
@@ -236,13 +255,15 @@ classdef field_screen < handle
             z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
             [ xx,yy ] = meshgrid( y,z );
             subplot(2,1,1);
-            %int=abs(sum(self.E,'all')); %total intensity
-            %ph =angle(sum(self.E,'all')); %total phase angle
             
             %max possible intensity for scaling
             max_int = max(sum(abs(self.E),3).^2,[],'all'); 
             
+            
             ret_handle=surf(xx,yy,abs(sum(self.E,3)).^2,'EdgeColor','none');
+            %slightly faster alternative
+            %image(abs(sum(self.E,3)).^2,'CDataMapping','scaled');
+            
             zlabel('Intensity');
             colorbar; view([0,90]); caxis([0 max_int]);
             xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)');
@@ -254,6 +275,10 @@ classdef field_screen < handle
             phase = phase-phase(end/2,end/2); %center mid to 0
             
             ret_handle=surf(xx,yy,phase,'EdgeColor','none');
+            
+            %slightly faster alternative
+            %image(phase,'CDataMapping','scaled');
+            
             zlabel('Phase (rad)');
             title('Interference (Phase)');
             %zlim([-1 1]*pi);
