@@ -1,4 +1,4 @@
-classdef field_screen < handle
+classdef field_screen < handle & matlab.mixin.Copyable
     %FIELD SCREEN is a class for projecting complex
     % wave fields. It can be used to represent 
     % complex field sensors such as single element photodiodes
@@ -111,7 +111,7 @@ classdef field_screen < handle
             %momentary intensity "irradiance"
             int=abs(sum(self.E.*(par_mask),'all')); 
             %phase (weighed)
-            phase = angle(mean(ph_angle_weighed.*(par_mask),'all'));  
+            phase = angle(sum(ph_angle_weighed.*(par_mask),'all'));  
             %complex field response
             e  = sum(self.E.*(par_mask),'all');
         end
@@ -151,7 +151,30 @@ classdef field_screen < handle
         end
         
         
-        function [ac,dc] = plot_contrast(self)
+        function [ac,dc] = plot_contrast(self, axes_h)
+            ac = min(abs(self.E(:,:,1)),abs(self.E(:,:,2)));
+            dc = max(abs(self.E(:,:,1)),abs(self.E(:,:,2)))-ac;
+             
+            y = linspace( -self.dim(1)/2, self.dim(1)/2, self.pix(1) );
+            z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
+            [ xx,yy ] = meshgrid( y,z );
+            
+            if exist('axes_h','var')
+                surf(axes_h,xx,yy,ac,'EdgeColor','none'); title(axes_h, 'AC');
+                xlabel(axes_h, 'Sensor Y (mm)');ylabel(axes_h, 'Sensor Z (mm)');
+            else
+                
+                subplot(2,1,1);
+                surf(xx,yy,ac,'EdgeColor','none'); title( 'AC');
+                xlabel( 'Sensor Y (mm)');ylabel( 'Sensor Z (mm)');
+                subplot(2,1,2);
+                surf(xx,yy,dc,'EdgeColor','none'); title('DC');
+                xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)'); 
+            end
+        end
+        
+        
+        function [ac,dc] = plot_contrast_ac_dc(self)
             ac = min(abs(self.E(:,:,1)),abs(self.E(:,:,2)));
             dc = max(abs(self.E(:,:,1)),abs(self.E(:,:,2)))-ac;
              
@@ -166,7 +189,7 @@ classdef field_screen < handle
             xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)'); 
         end
         
-        function [ret_ac,ret_dc, ret_contrast] = calc_contrast(self)
+        function [ret_contrast,ret_ac,ret_dc] = calc_contrast(self)
             [ret_ac,ret_dc, ret_contrast]=self.calc_contrast_masked(self.mask);
         end
         
@@ -185,8 +208,11 @@ classdef field_screen < handle
             y = linspace( -self.dim(1)/2, self.dim(1)/2, self.pix(1) );
             z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
             [ yy,zz] = meshgrid( y, z );
-            subplot(2,2,1);
-            retval=surf(yy,zz,double(self.mask),'EdgeColor','none');   
+            
+
+           subplot(2,2,1);
+           retval=surf(yy,zz,double(self.mask),'EdgeColor','none'); 
+           
             xlabel('y');ylabel('z');
             view([0 90]);
             for i=1:3
@@ -250,6 +276,28 @@ classdef field_screen < handle
         end %plot intensity
         
         
+         function ret_handle = plot_interference_int(self, axes_h)
+             
+            
+             
+            y = linspace( -self.dim(1)/2, self.dim(1)/2, self.pix(1) );
+            z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
+            [ xx,yy ] = meshgrid( y,z ); 
+            
+                        %max possible intensity for scaling
+            max_int = max(sum(abs(self.E),3).^2,[],'all'); 
+            
+            ret_handle=surf(axes_h,xx,yy,abs(sum(self.E,3)).^2,'EdgeColor','none');
+            %slightly faster alternative
+            %image(abs(sum(self.E,3)).^2,'CDataMapping','scaled');
+            zlabel(axes_h,'Intensity');
+            colorbar(axes_h); view(axes_h,[0,90]); caxis(axes_h,[0 max_int]);
+            xlabel(axes_h,'Sensor Y (mm)');ylabel(axes_h,'Sensor Z (mm)');
+            title(axes_h,'Interference (Intensity)');
+            
+         end
+        
+        
         function ret_handle = plot_interference(self)
             y = linspace( -self.dim(1)/2, self.dim(1)/2, self.pix(1) );
             z = linspace( -self.dim(2)/2, self.dim(2)/2, self.pix(2) );
@@ -260,30 +308,36 @@ classdef field_screen < handle
             max_int = max(sum(abs(self.E),3).^2,[],'all'); 
             
             
+
             ret_handle=surf(xx,yy,abs(sum(self.E,3)).^2,'EdgeColor','none');
             %slightly faster alternative
             %image(abs(sum(self.E,3)).^2,'CDataMapping','scaled');
-            
             zlabel('Intensity');
             colorbar; view([0,90]); caxis([0 max_int]);
             xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)');
             title('Interference (Intensity)');
-            subplot(2,1,2)
+            
             ph_angle =  angle(self.E);
             phase =  ph_angle(:,:,1)-ph_angle(:,:,2);         
             phase = lib.unwrap_2d.phase_unwrap_TV_min(phase,'no');
             phase = phase-phase(end/2,end/2); %center mid to 0
             
-            ret_handle=surf(xx,yy,phase,'EdgeColor','none');
             
-            %slightly faster alternative
-            %image(phase,'CDataMapping','scaled');
+            if ~exist('axis_handle','var')
+                subplot(2,1,2)
+                ret_handle=surf(xx,yy,phase,'EdgeColor','none');
+                        %slightly faster alternative
+                %image(phase,'CDataMapping','scaled');
+                            zlabel('Phase (rad)');
+                title('Interference (Phase)');
+                %zlim([-1 1]*pi);
+                colorbar;caxis([-1 1]*pi);view([0,90]);
+                xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)');
+            end
             
-            zlabel('Phase (rad)');
-            title('Interference (Phase)');
-            %zlim([-1 1]*pi);
-            colorbar;caxis([-1 1]*pi);view([0,90]);
-            xlabel('Sensor Y (mm)');ylabel('Sensor Z (mm)');
+            
+            
+    
         end % plot interference
         
     end
