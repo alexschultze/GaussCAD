@@ -1,7 +1,6 @@
 # GaussCAD / v0.3
 A simulator for evaluating Gaussian optics and simulate projection onto a photodiode. Visual representation of intensity/phase fields as described by Gaussian optics.
-
-DOI: 10.13140/RG.2.2.30260.27529
+https://www.doi.org/10.13140/RG.2.2.30260.27529/1
 
 A. Schultze
 30/09/2020
