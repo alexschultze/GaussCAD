@@ -7,7 +7,6 @@ classdef bench_abcd < handle
     properties
         elements=[];
         elements_pos=[];
-        rl =[0 0]
     end
     
     methods (Static)
@@ -19,11 +18,6 @@ classdef bench_abcd < handle
     end
     
     methods
-        function obj = bench_abcd(in_r0, in_alpha0)
-            %Initial Beam Parameter
-            obj.rl=[in_r0 in_alpha0]';
-        end
-        
         function add(obj, in_pos,in_element)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -31,7 +25,11 @@ classdef bench_abcd < handle
             obj.elements_pos    =[obj.elements_pos in_pos];
         end
         
-        function plot(obj)
+        function plot(obj, par_rl)
+            
+             if(size(par_rl)~=[2 1])
+                 error('Wrong parameter dimension [r alpha]');
+             end
              %figure();
              subplot(2,1,1);
              hold on;
@@ -46,7 +44,7 @@ classdef bench_abcd < handle
                     last_rl=this_rl(:,i-1);
                 else
                     last_z=0;
-                    last_rl=obj.rl;
+                    last_rl=par_rl;
                 end
 
                 z= obj.elements_pos(i)-last_z;
@@ -59,7 +57,7 @@ classdef bench_abcd < handle
             end
             
             % Build complete with initial
-            rl= [obj.rl, this_rl];
+            rl= [par_rl, this_rl];
             pos=[0,obj.elements_pos];
             plot(pos, rl(1,:));
             xlabel('z (m)');

@@ -10,7 +10,7 @@
 
 
 %Part 1. Trace a Gaussian Beam through a bench.
-this_bench= paraxial.bench_abcd(0.01,0);
+this_bench= paraxial.bench_abcd();
 this_bench.add(0.1, paraxial.element('lens',0.05));
 this_bench.add(0.14, paraxial.element('mirror_curved',-0.02));
 this_bench.add(0.28, paraxial.element('screen',0.02));

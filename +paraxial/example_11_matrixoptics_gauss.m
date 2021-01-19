@@ -11,7 +11,7 @@ r=0.02;
 d= 0.099;
 
 % Without lenses, normal propagation
-this_bench= paraxial.bench_abcd(0.01,0);
+this_bench= paraxial.bench_abcd();
 this_bench.add(0.5, paraxial.element('screen',0.02));
 [q, pos, R]=this_bench.plot_gauss(-4.8+1i*0.45);
 
@@ -24,12 +24,12 @@ table(pos', w0',w', q',R', 'VariableNames',{'z', 'w0','w', 'q','R'})
 w_orig=w(end);
 R_orig=R(end);
 
-this_bench= paraxial.bench_abcd(0.01,0);
+this_bench= paraxial.bench_abcd();
 this_bench.add(0.2-d, paraxial.element('lens',f));
 this_bench.add(0.2, paraxial.element('mirror_curved',-r));
 this_bench.add(0.2+d, paraxial.element('lens',f));
 this_bench.add(0.5, paraxial.element('screen',0.02));
-this_bench.plot();
+this_bench.plot([0.01;0]);
 
 figure();
 this_bench.plot_gauss(-4.8+1i*0.45);
