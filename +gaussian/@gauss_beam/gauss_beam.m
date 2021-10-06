@@ -1,4 +1,5 @@
 classdef gauss_beam < handle & matlab.mixin.Copyable
+%classdef gauss_beam
     %This class defines a gauss beam
     % A. Schultze 01/10/2020 (GaussCAD toolbox)
     properties
@@ -107,6 +108,17 @@ classdef gauss_beam < handle & matlab.mixin.Copyable
             zdiff = real(a_q_new-a_q_old); %position of beam waist old vs new
             ret_beam.p = ret_beam.p+self.n * zdiff;
         end
+        
+        %Rotates the beam around a given pivot point
+        %to look into direction vector n, through pivot
+        function ret_beam = rotate_pivot(self, par_p,par_n)
+            dist=norm(self.p- par_p);
+            self.p= par_p+-par_n.*dist;
+            self.n= par_n;
+            ret_beam=self;
+        end
+        
+        
         
         
     end
