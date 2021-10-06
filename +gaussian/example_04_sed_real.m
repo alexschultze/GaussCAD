@@ -50,9 +50,9 @@ disp(['Max Contrast [%]' num2str(100*ac./(dc+ac))]);
 % Parameter study. Beam1 has a offset
 par = linspace(-50e-6, 50e-6,21);
 
-p0=beam1.p;
+p0=gscreen.beams(1).p;
 for i=1:length(par)
-    beam1.p=p0+[0 par(i) 0 ];
+    gscreen.beams(1).p=p0+[0 par(i) 0 ];
     gscreen.render();
     [~,this_ph]=gscreen.calc_int_phase();
     ph(i)=this_ph;
@@ -66,7 +66,7 @@ suptitle('GaussCAD Example 04 - SED Offset-to-Length Coupling');
 
 
 %% Make a video of interference on screen
-return;
+
 figure();
 v = VideoWriter('example04.avi','Motion JPEG AVI');
 v.FrameRate = 10;

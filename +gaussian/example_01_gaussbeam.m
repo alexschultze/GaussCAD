@@ -13,7 +13,6 @@ w0     = 2*lambda;
 beam1= gaussian.gauss_beam([0.01 0 0],[1 1 0],w0, 1, lambda );
 
 % Section one, evaluate in R-Z Coordinates (Beam reference)
-
 r = linspace(-lambda*10,lambda*10,1000);
 z = linspace(-lambda*100,lambda*100,100);
 [rr,zz]=meshgrid(r,z);
@@ -61,7 +60,37 @@ plot3(zz(indx_wf),rr(indx_wf),real(E(indx_wf)),'.');
 xlabel('z');ylabel('r');zlabel('Wavefront Intensity');
 
 
-% Section two, evaluate in X Y Z Coordinates (Cartesian)
+%% Section two, evaluate in X Y Z Coordinates (Cartesian) Cross Section
+w0 = 100*lambda;
+beam2= gaussian.gauss_beam([0.00 0 0],[0 0 1],w0, 1, lambda );
+
+x = linspace(-lambda*500,lambda*500,1000);
+y = linspace(-lambda*500,lambda*500,1000);
+z = 0.1;
+[xx,yy,zz]=meshgrid(x,y,z);
+points = [xx(:), yy(:) zz(:)];
+E=beam2.calc_field_xyz(points);
+EE = reshape(E,size(xx));
+
+EE_unwrap = lib.unwrap_2d_fast.unwrap_phase(angle(EE));
+
+figure();
+subplot(3,1,1);
+surf(xx,yy,abs(EE),'EdgeColor','none');
+xlabel('x (m)');ylabel('y (m)');zlabel('Magnitude');
+title('Intensity and Phase (Cartesian Coordinates) Cross Section');
+subplot(3,1,2);
+surf(xx,yy,angle(EE),'EdgeColor','none');
+xlabel('x (m)');ylabel('y (m)');zlabel('Phase');
+
+subplot(3,1,3);
+surf(xx,yy,EE_unwrap,'EdgeColor','none');
+xlabel('x (m)');ylabel('y (m)');zlabel('Phase (Cont)');
+
+
+
+%% Section three, evaluate in X Y Z Coordinates (Cartesian)
+beam1= gaussian.gauss_beam([0.01 0 0],[1 1 0],w0, 1, lambda );
 x = linspace(-lambda*100,lambda*100,1000)+0.01;
 y = linspace(-lambda*100,lambda*100,1000);
 z = 0;

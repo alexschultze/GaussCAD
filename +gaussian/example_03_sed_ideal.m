@@ -33,7 +33,7 @@ for i = 1:length(par)
    fprintf('*');
    
    %Slow Variant
-   %beam1.phase0=par(i);
+   %gscreen.beam(1).phase0=par(i);
    %gscreen.render();
    
    %Fast Variant

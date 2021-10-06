@@ -52,11 +52,11 @@ disp(['Max Contrast [%]' num2str(100*ac./(ac+dc))]);
 
 % Parameter study 1. Beam1 has a offset. Coupling of Offset into Pathlengths.
 par = linspace(0,100e-6,20);
-p0=beam1.p;
+p0=gscreen.beams(1).p;
 
 clear ph q_ph dws;
 for i=1:length(par)
-    beam1.p=p0+[0 par(i) 0 ];
+    gscreen.beams(1).p=p0+[0 par(i) 0 ];
     gscreen.render();
     [~,this_ph]=gscreen.calc_int_phase();
     ph(i)=this_ph;    
@@ -94,7 +94,7 @@ clear ph dws;
 %beam1.p = p0; % reset to original
 for i=1:length(par)
     theta=par(i);
-    beam2.n=[cos(theta) sin(theta) 0];
+    gscreen.beams(2).n=[cos(theta) sin(theta) 0];
 
     gscreen.render();
     [~,ph(i)]=gscreen.calc_int_phase;
