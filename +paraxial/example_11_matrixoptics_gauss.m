@@ -11,12 +11,10 @@ r=0.02;
 d= 0.099;
 
 % Without lenses, normal propagation
-this_bench= paraxial.bench_abcd();
+this_bench= paraxial.bench_abcd(1064e-9);
 this_bench.add(0.5, paraxial.element('screen',0.02));
-[q, pos, R]=this_bench.plot_gauss(-4.8+1i*0.45);
+[q, pos, R,w,w0]=this_bench.plot_gauss(-4.8+1i*0.45);
 
-w0=sqrt(imag(q)*1064e-9/pi);
-w = w0.*sqrt(1+(imag(q)./real(q)).^2);
 table(pos', w0',w', q',R', 'VariableNames',{'z', 'w0','w', 'q','R'})
 
 %This are beam parameters at screen by default without any optical
@@ -34,8 +32,8 @@ this_bench.plot([0.01;0]);
 figure();
 this_bench.plot_gauss(-4.8+1i*0.45);
 
-[q, pos, R]=this_bench.plot_gauss(-4.8+1i*0.45);
-w0=sqrt(imag(q)*1064e-9/pi);
+[q, pos, R,w0]=this_bench.plot_gauss(-4.8+1i*0.45);
+
 table(pos', w0', q',R', 'VariableNames',{'z', 'w0', 'q','R'})
 
 
@@ -69,7 +67,7 @@ ylabel('New R (m) at Screen');
 
 subplot(3,1,3)
 w0=sqrt(imag(q_new)*1064e-9/pi);
-w = w0.*sqrt(1+(imag(q_new)./real(q_new)).^2);
+w = w0.*sqrt(1+(real(q_new)./imag(q_new)).^2);
 plot(d,w);hold on;
 yline(w_orig);
 xlabel('Distance d (Lens-Mirror) (m)');
