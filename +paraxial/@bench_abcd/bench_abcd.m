@@ -145,11 +145,20 @@ classdef bench_abcd < handle
             if(nargout==0)
                 subplot(4,1,1);
                 hold on;
-                for i=1:length(obj.elements_pos); xline(obj.elements_pos(i),'--r');end
-                plot(pos, real(q));
-                xlabel('z (m)');
-                ylabel('z(z) (m)');
-                subplot(4,1,2);
+
+                %draw each element
+                for i=1:length(obj.elements_pos)
+                    xline(obj.elements_pos(i),'--r');
+                    if ~strcmp(obj.elements(i).type,'translation')
+                        text(obj.elements_pos(i),0,obj.elements(i).type,'Rotation',90,'Color','r','Interpreter','none');
+                    end
+                
+                end
+                xlim([0,obj.elements_pos(end)]);
+
+                xlabel('Setup (m)');
+
+                subplot(4,1,4);
                 stairs(pos, imag(q));
                 xlabel('z (m)');
                 ylabel('z0(z) (rad)');
@@ -159,7 +168,7 @@ classdef bench_abcd < handle
                 xlabel('z (m)');
                 ylabel('R(z) (m)');
 
-                subplot(4,1,4);
+                subplot(4,1,2);
                 plot(pos, w,'--');
                 xlabel('z (m)');
                 ylabel('w(z) (m)');
