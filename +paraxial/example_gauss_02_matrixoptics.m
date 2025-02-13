@@ -1,9 +1,11 @@
 %% Matrix Optics (ABCD) example 02
+
+% Simple demonstration of a Gaussian beam through a lens
 % to calculate new Gaussian complex beam parameter (q) with ray optics
 % A. Schultze 01/10/2020 (GaussCAD toolbox)
 
 
-this_bench= paraxial.bench_abcd(533e-9); %new bench with 533nm light
+this_bench= paraxial.bench_abcd(1064e-9); %new bench with 533nm light
 this_bench.add(0.1, paraxial.element('lens',0.05));
 this_bench.add(0.14, paraxial.element('lens',-0.05));
 this_bench.add(0.28, paraxial.element('screen',0.02));

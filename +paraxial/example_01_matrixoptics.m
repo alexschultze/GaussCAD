@@ -1,5 +1,9 @@
-%% Matrix Optics (ABCD) example 01
-% to calculate simple ray transfer optics example.
+%% Matrix Optics (ABCD) example G01
+
+% This example demonstrates simple geometrical ray transfer optics example
+% using matrix optics.
+
+
 % A. Schultze 01/10/2020 (GaussCAD toolbox)
 
 %Define a bench .

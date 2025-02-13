@@ -1,10 +1,9 @@
 %% Matrix Optics (ABCD) example 11
-% to calculate new Gaussian complex beam parameter (q) with ray optics
-% A. Schultze 01/10/2020 (GaussCAD toolbox)
 
-% All paraxial approximation calculations (ABCD) are performed on axis.
-
+% Demonstration of a Lens focusing a Gaussian beam onto a curved surface.
 % Setup: Lens , Spherical Surface, Lens (Double Pass)
+
+% A. Schultze 13/02/2025 (GaussCAD toolbox)
 
 f=0.10;
 r=0.02;
@@ -22,7 +21,7 @@ table(pos', w0',w', q',R', 'VariableNames',{'z', 'w0','w', 'q','R'})
 w_orig=w(end);
 R_orig=R(end);
 
-this_bench= paraxial.bench_abcd();
+this_bench= paraxial.bench_abcd(1064e-9);
 this_bench.add(0.2-d, paraxial.element('lens',f));
 this_bench.add(0.2, paraxial.element('mirror_curved',-r));
 this_bench.add(0.2+d, paraxial.element('lens',f));
